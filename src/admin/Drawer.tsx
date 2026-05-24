@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '../icons';
 import { STATUS_FLOW, ALL_STATUSES, MEDICAL_PROGRAMS } from '../data';
 import type { Status } from '../data';
@@ -20,6 +20,7 @@ interface DrawerProps {
   app: Application | null;
   onClose: () => void;
   onUpdateStatus: (id: string, status: Status) => void;
+  onDelete: (id: string) => void;
 }
 
 function FileBlock({ f }: { f: FileMeta | null }) {
@@ -43,7 +44,10 @@ function FileBlock({ f }: { f: FileMeta | null }) {
   );
 }
 
-export function Drawer({ app, onClose, onUpdateStatus }: DrawerProps) {
+export function Drawer({ app, onClose, onUpdateStatus, onDelete }: DrawerProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  useEffect(() => { setConfirmDelete(false); }, [app?.id]);
+
   useEffect(() => {
     if (!app) return;
     const prevOverflow = document.body.style.overflow;
@@ -87,9 +91,8 @@ export function Drawer({ app, onClose, onUpdateStatus }: DrawerProps) {
           <div className="review-grp">
             <div className="review-grp-head"><h4>Contact</h4></div>
             <div className="review-grid">
-              <div className="review-item"><span className="k">Email</span><span className="v"><a href={`mailto:${app.email}`}>{app.email}</a></span></div>
               <div className="review-item"><span className="k">Phone</span><span className="v"><a href={`tel:${app.phone}`}>{app.phone}</a></span></div>
-              <div className="review-item"><span className="k">Date of birth</span><span className="v">{app.dob || '—'}</span></div>
+              <div className="review-item"><span className="k">Email</span><span className="v">{app.email ? <a href={`mailto:${app.email}`}>{app.email}</a> : '—'}</span></div>
               <div className="review-item"><span className="k">City, State</span><span className="v">{[app.city, app.state].filter(Boolean).join(', ') || '—'}</span></div>
             </div>
           </div>
@@ -162,6 +165,17 @@ export function Drawer({ app, onClose, onUpdateStatus }: DrawerProps) {
         <div className="drawer-foot">
           <a className="btn btn-secondary" href={`tel:${app.phone}`}><Icon.Phone size={14} /> Call</a>
           <a className="btn btn-secondary" href={`mailto:${app.email}`}><Icon.Mail size={14} /> Email</a>
+          {confirmDelete ? (
+            <div className="del-confirm">
+              <span>Delete this applicant?</span>
+              <button className="btn btn-danger" onClick={() => onDelete(app.id)}>Yes, delete</button>
+              <button className="btn btn-ghost" onClick={() => setConfirmDelete(false)}>Cancel</button>
+            </div>
+          ) : (
+            <button className="btn btn-ghost del-btn" onClick={() => setConfirmDelete(true)} title="Delete applicant">
+              <Icon.Trash size={14} />
+            </button>
+          )}
           {advance ? (
             <button className="btn btn-primary" onClick={() => onUpdateStatus(app.id, advance)}>
               Mark as {advance.toLowerCase()} <Icon.Arrow size={14} />

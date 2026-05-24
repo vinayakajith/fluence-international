@@ -1,14 +1,15 @@
 import type { FormData } from '../enquiry/types';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^[+\d][\d\s\-()]{7,}$/;
+// Accept exactly 10 digits, optionally prefixed with +91 or 0
+const PHONE_RE = /^(?:\+91|0)?[6-9]\d{9}$/;
 
 export function isValidEmail(s: string): boolean {
   return EMAIL_RE.test(s);
 }
 
 export function isValidPhone(s: string): boolean {
-  return PHONE_RE.test(s);
+  return PHONE_RE.test(s.replace(/[\s\-()]/g, ''));
 }
 
 export function isValidPercent(s: string): boolean {
@@ -27,10 +28,8 @@ export function validateStep(step: number, data: FormData): Errors {
     if (!data.studyLevel)                           errors.studyLevel = 'Please select UG or PG';
     if (!data.fullName.trim())                      errors.fullName = 'Required';
     if (!data.phone.trim())                         errors.phone = 'Required';
-    else if (!isValidPhone(data.phone))             errors.phone = 'Enter a valid phone number';
-    if (!data.city.trim())                          errors.city = 'Required';
+    else if (!isValidPhone(data.phone))             errors.phone = 'Enter a valid 10-digit mobile number';
     if (!data.state.trim())                         errors.state = 'Required';
-    if (data.email.trim() && !isValidEmail(data.email)) errors.email = 'Enter a valid email';
   }
 
   if (step === 1) {
@@ -53,6 +52,7 @@ export function validateStep(step: number, data: FormData): Errors {
     else if (data.preferredProgram === 'Other' && !data.otherProgram.trim()) {
       errors.otherProgram = 'Please describe the program you want';
     }
+    if (data.email.trim() && !isValidEmail(data.email)) errors.email = 'Enter a valid email address';
   }
 
   return errors;

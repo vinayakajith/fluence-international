@@ -129,11 +129,16 @@ export async function findApplication(id: string): Promise<Application | null> {
   return data ? fromRow(data as AppRow) : null;
 }
 
-export async function upsertApplication(record: Application): Promise<void> {
+export async function insertApplication(record: Application): Promise<void> {
   const { error } = await supabase
     .from('applications')
-    .upsert(toRow(record), { onConflict: 'id' });
+    .insert(toRow(record));
   if (error) throw new Error(error.message ?? JSON.stringify(error));
+}
+
+export async function deleteApplication(id: string): Promise<void> {
+  const { error } = await supabase.from('applications').delete().eq('id', id);
+  if (error) throw error;
 }
 
 export async function updateApplicationStatus(id: string, status: Status): Promise<void> {
@@ -144,6 +149,31 @@ export async function updateApplicationStatus(id: string, status: Status): Promi
   if (error) throw error;
 }
 
+export async function updateApplicationFull(id: string, app: Application): Promise<void> {
+  const row = toRow(app);
+  const { error } = await supabase.rpc('update_application_full', {
+    p_app_id: id,
+    p_data:   row,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateFileMetas(id: string, files: {
+  tenthFile: FileMeta | null;
+  eleventhFile: FileMeta | null;
+  twelfthFile: FileMeta | null;
+  ugFile: FileMeta | null;
+}): Promise<void> {
+  const { error } = await supabase.rpc('save_file_metas', {
+    p_app_id:        id,
+    p_tenth_file:    files.tenthFile    as unknown,
+    p_eleventh_file: files.eleventhFile as unknown,
+    p_twelfth_file:  files.twelfthFile  as unknown,
+    p_ug_file:       files.ugFile       as unknown,
+  });
+  if (error) throw new Error(error.message);
+}
+
 // ---- File uploads ----
 
 export async function uploadDocuments(appId: string, data: FormData): Promise<{
@@ -152,12 +182,17 @@ export async function uploadDocuments(appId: string, data: FormData): Promise<{
   twelfthFile: FileMeta | null;
   ugFile: FileMeta | null;
 }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const uid = session?.user?.id;
+  if (!uid) throw new Error('Not authenticated — cannot upload documents');
+
   async function upload(file: File | null, field: string): Promise<FileMeta | null> {
     if (!file) return null;
     const ext = file.name.split('.').pop() ?? 'bin';
-    const path = `${appId}/${field}.${ext}`;
-    const { error } = await supabase.storage.from('documents').upload(path, file, { upsert: true });
-    if (error) throw error;
+    // Path scoped to user's UID so no other user can overwrite it.
+    const path = `${uid}/${appId}/${field}.${ext}`;
+    const { error } = await supabase.storage.from('documents').upload(path, file);
+    if (error) throw new Error(`Upload failed (${field}): ${error.message}`);
     return { name: file.name, size: file.size, type: file.type, path };
   }
 

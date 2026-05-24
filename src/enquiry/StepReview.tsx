@@ -36,9 +36,8 @@ export function StepReview({ data, setStep }: StepReviewProps) {
         </div>
         <div className="review-grid">
           <div className="review-item"><span className="k">Full name</span>{valueOrEmpty(data.fullName)}</div>
-          <div className="review-item"><span className="k">Date of birth</span>{valueOrEmpty(data.dob)}</div>
-          <div className="review-item"><span className="k">Email</span>{valueOrEmpty(data.email)}</div>
           <div className="review-item"><span className="k">Phone</span>{valueOrEmpty(data.phone)}</div>
+          <div className="review-item"><span className="k">Email</span>{valueOrEmpty(data.email || 'Not provided')}</div>
           <div className="review-item" style={{ gridColumn: '1 / -1' }}>
             <span className="k">City, State</span>
             {valueOrEmpty([data.city, data.state].filter(Boolean).join(', '))}

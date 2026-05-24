@@ -3,17 +3,47 @@ import { CONTACT } from '../data';
 
 interface SuccessViewProps {
   id: string;
+  uploadWarning?: string | null;
 }
 
-export function SuccessView({ id }: SuccessViewProps) {
+const NEXT_STEPS = [
+  { label: 'Counsellor reviews your application', timing: 'Within 2 hours' },
+  { label: 'You receive a call on your mobile', timing: 'Within 2–48 hours' },
+  { label: 'Counsellor shortlists matching colleges', timing: 'Same call' },
+  { label: 'Admission guidance & seat confirmation', timing: 'Within 1–3 days' },
+];
+
+export function SuccessView({ id, uploadWarning }: SuccessViewProps) {
   return (
     <div className="success-card">
       <span className="checkmark"><Icon.Check size={32} /></span>
       <h2>Application <span className="it">received.</span></h2>
       <p>
-        Thank you. Your enquiry has been logged and a counsellor will be in touch within 48 hours on your registered phone and email.
+        Your enquiry is logged. A counsellor will call you within 2–48 hours on your registered mobile number.
       </p>
       <div className="success-id">Reference · {id}</div>
+
+      <div className="success-next">
+        <div className="success-next-title">What happens next</div>
+        <ol className="success-timeline">
+          {NEXT_STEPS.map((s, i) => (
+            <li key={i} className="success-tl-item">
+              <span className="success-tl-dot">{i + 1}</span>
+              <div className="success-tl-body">
+                <span className="success-tl-label">{s.label}</span>
+                <span className="success-tl-timing">{s.timing}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {uploadWarning && (
+        <div className="submit-warning" style={{ textAlign: 'left', marginTop: 16 }}>
+          <strong>Documents not uploaded:</strong> {uploadWarning}<br />
+          Please WhatsApp or email your marksheets directly to us.
+        </div>
+      )}
 
       <a
         className="whatsapp-cta"

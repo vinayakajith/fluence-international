@@ -48,7 +48,7 @@ export function StepProgram({ data, set, errors }: StepProgramProps) {
   return (
     <div>
       <div className="wiz-step-head">
-        <div className="eyebrow">Step 3 of 4</div>
+        <div className="eyebrow">College Preferences · Step 3 of 4</div>
         <h2>Choose your <span className="it">program & college.</span></h2>
         <div className="help">Select a program first, then tap a partner college below. If your course isn't listed, choose <strong>Other</strong> and describe it. Leave the college blank and our counsellor will recommend the best fit.</div>
       </div>
@@ -148,6 +148,19 @@ export function StepProgram({ data, set, errors }: StepProgramProps) {
           value={data.goals}
           onChange={e => set('goals', e.target.value)}
         />
+      </div>
+
+      <div className="field" style={{ marginTop: 18 }}>
+        <label>Email <span className="hint-inline">Optional — for sharing documents &amp; updates</span></label>
+        <input
+          type="email"
+          placeholder="you@example.com"
+          value={data.email}
+          inputMode="email"
+          autoComplete="email"
+          onChange={e => set('email', e.target.value)}
+        />
+        {errors.email && <div className="field-error">{errors.email}</div>}
       </div>
     </div>
   );

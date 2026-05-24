@@ -23,9 +23,22 @@ export function LoginPage() {
   return (
     <div className="login-shell">
       <div className="login-card">
-        <FluenceWordmark height={44} />
-        <h1 className="login-title">Admin sign in</h1>
-        <p className="login-sub">Fluence International · Admissions dashboard</p>
+
+        <div className="login-brand">
+          <FluenceWordmark height={36} />
+          <div className="login-brand-text">
+            <span className="login-brand-name">Fluence International</span>
+            <span className="login-brand-sub">Admissions dashboard</span>
+          </div>
+        </div>
+
+        <div className="login-divider" />
+
+        <div className="login-head">
+          <h1 className="login-title">Sign in</h1>
+          <p className="login-sub">Admin access only</p>
+        </div>
+
         <form onSubmit={handleSubmit} className="login-form">
           <div className="login-field">
             <label htmlFor="login-email">Email</label>
@@ -55,6 +68,7 @@ export function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in →'}
           </button>
         </form>
+
       </div>
     </div>
   );

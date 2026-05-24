@@ -19,9 +19,8 @@ export function Nav({ go }: NavProps) {
             <Icon.Phone size={14} /> <span className="nav-phone-num">{CONTACT.phone}</span>
           </a>
           <button className="nav-cta" onClick={() => go('enquiry')}>
-            Begin enquiry <Icon.Arrow size={14} />
+            Get guidance <Icon.Arrow size={14} />
           </button>
-          <button className="nav-admin" onClick={() => go('admin')}>Admin</button>
         </div>
       </div>
     </header>

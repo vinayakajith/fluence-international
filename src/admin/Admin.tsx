@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Icon, FluenceWordmark } from '../icons';
 import { ALL_STATUSES } from '../data';
 import type { Status } from '../data';
-import { listApplications, updateApplicationStatus } from '../utils/storage';
+import { listApplications, updateApplicationStatus, deleteApplication } from '../utils/storage';
 import { ApplicantRow } from './ApplicantRow';
 import { Drawer } from './Drawer';
 import type { Application } from './types';
@@ -57,6 +57,12 @@ function AdminDashboard({ go }: AdminProps) {
   const updateStatus = useCallback((id: string, newStatus: Status) => {
     setApps(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
     updateApplicationStatus(id, newStatus).catch(err => console.error('Status update failed', err));
+  }, []);
+
+  const handleDelete = useCallback((id: string) => {
+    setApps(prev => prev.filter(a => a.id !== id));
+    setActiveId(null);
+    deleteApplication(id).catch(err => console.error('Delete failed', err));
   }, []);
 
   const filtered = useMemo(() => {
@@ -200,7 +206,7 @@ function AdminDashboard({ go }: AdminProps) {
         </div>
       </main>
 
-      <Drawer app={active} onClose={closeDrawer} onUpdateStatus={updateStatus} />
+      <Drawer app={active} onClose={closeDrawer} onUpdateStatus={updateStatus} onDelete={handleDelete} />
     </div>
   );
 }
@@ -220,7 +226,7 @@ export function Admin({ go }: AdminProps) {
     );
   }
 
-  if (!session) return <LoginPage />;
+  if (!session?.user.email) return <LoginPage />;
 
   return <AdminDashboard go={go} />;
 }

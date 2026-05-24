@@ -3,6 +3,7 @@ import { Field } from './Field';
 import { FileUpload } from './FileUpload';
 import { MAX_FILE_BYTES } from '../data';
 import { fmtFileSize } from '../utils/format';
+import { Icon } from '../icons';
 import type { FormData } from './types';
 import type { Errors } from '../utils/validation';
 
@@ -24,10 +25,13 @@ export function StepAcademic({ data, set, errors }: StepAcademicProps) {
   return (
     <div>
       <div className="wiz-step-head">
-        <div className="eyebrow">Step 2 of 4</div>
+        <div className="eyebrow">Academic Details · Step 2 of 4</div>
         <h2>Your <span className="it">academic record.</span></h2>
         <div className="help">
-          Upload clear scans or photos of your marksheets. PDF, JPG or PNG · up to {fmtFileSize(MAX_FILE_BYTES)} each.
+          Upload clear scans or photos of your marksheets. PDF or JPG only · max {fmtFileSize(MAX_FILE_BYTES)} per file.
+        </div>
+        <div className="upload-trust">
+          <Icon.Check size={11} /> Documents are secure &amp; used only for admission processing
         </div>
       </div>
 

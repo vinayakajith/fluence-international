@@ -7,7 +7,7 @@ import type { ProgramKey, Status } from '../data';
 import { BLANK_FORM, STEPS } from './types';
 import type { FormData } from './types';
 import { validateStep, type Errors } from '../utils/validation';
-import { upsertApplication, uploadDocuments } from '../utils/storage';
+import { insertApplication, updateApplicationFull, uploadDocuments, updateFileMetas } from '../utils/storage';
 import { StepPersonal } from './StepPersonal';
 import { StepAcademic } from './StepAcademic';
 import { StepProgram } from './StepProgram';
@@ -82,13 +82,15 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
 
   const [step, setStep]           = useState(0);
   const [data, setData]           = useState<FormData>(initial);
+  const [honeypot, setHoneypot]   = useState('');
 
-  const [errors, setErrors]       = useState<Errors>({});
-  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors]           = useState<Errors>({});
+  const [submitting, setSubmitting]   = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
-  const [recordId, setRecordId]   = useState<string | null>(null);
-  const [recordCreatedAt, setRecordCreatedAt] = useState<string | null>(null);
+  // Partial lead capture — set after Step 1 is completed
+  const [partialId, setPartialId]     = useState<string | null>(null);
 
   const set = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setData(d => ({ ...d, [key]: value }));
@@ -106,7 +108,7 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const next = async () => {
+  const next = () => {
     const stepErrors = validateStep(step, data);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -116,22 +118,13 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
       });
       return;
     }
-
-    // Persist lead to Supabase — sales team sees it even on partial completion.
-    try {
-      let id = recordId;
-      let createdAt = recordCreatedAt;
-      if (!id) {
-        id = newId();
-        createdAt = new Date().toISOString();
-        setRecordId(id);
-        setRecordCreatedAt(createdAt);
-      }
-      await upsertApplication(toApplication(id, data, 'Lead', createdAt!));
-    } catch (err) {
-      console.warn('Lead save failed', err);
+    // Fire-and-forget partial lead capture the first time Step 1 is completed
+    if (step === 0 && !partialId) {
+      const id = newId();
+      setPartialId(id);
+      insertApplication(toApplication(id, data, 'Lead', new Date().toISOString()))
+        .catch(err => console.warn('Partial lead save failed:', err));
     }
-
     if (step < STEPS.length - 1) goToStep(step + 1);
   };
 
@@ -141,6 +134,7 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
 
   const submit = async () => {
     if (submitting) return;
+    if (honeypot) return; // bot filled the hidden field
     for (let i = 0; i <= 2; i++) {
       const e = validateStep(i, data);
       if (Object.keys(e).length > 0) {
@@ -152,27 +146,23 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const id        = recordId ?? newId();
-      const createdAt = recordCreatedAt ?? new Date().toISOString();
-      if (!recordId) { setRecordId(id); setRecordCreatedAt(createdAt); }
+      const id        = partialId ?? newId();
+      const createdAt = new Date().toISOString();
 
-      // Save application record first (text data only).
-      await upsertApplication(toApplication(id, data, 'Lead', createdAt));
+      if (partialId) {
+        await updateApplicationFull(id, toApplication(id, data, 'Lead', createdAt));
+      } else {
+        await insertApplication(toApplication(id, data, 'Lead', createdAt));
+      }
 
-      // Upload files — non-fatal: if storage isn't set up yet, skip silently.
-      let fileMetas = { tenthFile: null, eleventhFile: null, twelfthFile: null, ugFile: null } as Awaited<ReturnType<typeof uploadDocuments>>;
+      // Upload files — non-fatal.
       try {
-        fileMetas = await uploadDocuments(id, data);
-        // Update record with file paths now that uploads succeeded.
-        await upsertApplication({
-          ...toApplication(id, data, 'Lead', createdAt),
-          tenthFile:    fileMetas.tenthFile,
-          eleventhFile: fileMetas.eleventhFile,
-          twelfthFile:  fileMetas.twelfthFile,
-          ugFile:       fileMetas.ugFile,
-        });
+        const fileMetas = await uploadDocuments(id, data);
+        await updateFileMetas(id, fileMetas);
       } catch (uploadErr) {
-        console.warn('File upload failed, application saved without documents:', uploadErr);
+        const msg = uploadErr instanceof Error ? uploadErr.message : JSON.stringify(uploadErr);
+        console.warn('File upload/save failed:', msg);
+        setUploadWarning(msg);
       }
 
       setSubmittedId(id);
@@ -194,7 +184,7 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
         <Nav go={go} current="enquiry" />
         <main className="wiz-shell">
           <div className="shell" style={{ maxWidth: 760 }}>
-            <SuccessView id={submittedId} />
+            <SuccessView id={submittedId} uploadWarning={uploadWarning} />
           </div>
         </main>
         <Footer />
@@ -215,7 +205,7 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
           </a>
           <div className="eyebrow">Direct admission enquiry</div>
           <h1 className="enquiry-h1">Submit your <span className="it">application.</span></h1>
-          <p className="enquiry-sub">Four short steps. A counsellor will be in touch within 48 hours.</p>
+          <p className="enquiry-sub">Four short steps. A counsellor will call within 2–48 hours.</p>
           {previewedUni && (
             <div className="preselect-banner">
               <span className="preselect-dot" />
@@ -258,6 +248,11 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
           </div>
 
           <div className="wiz-card">
+            {/* Honeypot — hidden from humans, bots fill it in */}
+            <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+              <label htmlFor="hp_website">Website</label>
+              <input id="hp_website" type="text" name="website" value={honeypot} onChange={e => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" />
+            </div>
             {step === 0 && <StepPersonal data={data} set={set} errors={errors} />}
             {step === 1 && <StepAcademic data={data} set={set} errors={errors} />}
             {step === 2 && <StepProgram  data={data} set={set} errors={errors} />}
@@ -287,6 +282,11 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
             {submitError && (
               <div className="submit-error">
                 <strong>Submission failed:</strong> {submitError}
+              </div>
+            )}
+            {uploadWarning && (
+              <div className="submit-warning">
+                <strong>Note:</strong> Your application was saved, but document uploads failed: {uploadWarning}. Please contact us to send your documents directly.
               </div>
             )}
           </div>
