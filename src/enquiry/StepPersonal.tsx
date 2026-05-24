@@ -17,6 +17,33 @@ export function StepPersonal({ data, set, errors }: StepPersonalProps) {
         <h2>Tell us <span className="it">about you.</span></h2>
         <div className="help">Just the basics — we'll use this to set up your file with the university.</div>
       </div>
+
+      {/* Study level — asked first so academic step can adapt */}
+      <div className="field full" style={{ marginBottom: 24 }}>
+        <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+          I'm applying for <span className="req">*</span>
+        </label>
+        <div className="level-toggle">
+          <button
+            type="button"
+            className={`level-btn ${data.studyLevel === 'UG' ? 'active' : ''}`}
+            onClick={() => set('studyLevel', 'UG')}
+          >
+            <span className="level-title">Undergraduate (UG)</span>
+            <span className="level-sub">B.Tech · B.Arch · MBBS · Nursing · Degree…</span>
+          </button>
+          <button
+            type="button"
+            className={`level-btn ${data.studyLevel === 'PG' ? 'active' : ''}`}
+            onClick={() => set('studyLevel', 'PG')}
+          >
+            <span className="level-title">Postgraduate (PG)</span>
+            <span className="level-sub">MBA · M.Tech · M.Sc · MCA…</span>
+          </button>
+        </div>
+        {errors.studyLevel && <div className="field-error">{errors.studyLevel}</div>}
+      </div>
+
       <div className="fgrid">
         <div className="field full">
           <Field label="Full name" required error={errors.fullName}>

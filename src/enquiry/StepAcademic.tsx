@@ -13,6 +13,8 @@ interface StepAcademicProps {
 }
 
 export function StepAcademic({ data, set, errors }: StepAcademicProps) {
+  const isPG = data.studyLevel === 'PG';
+
   const years = useMemo(() => {
     const ys: number[] = []; const now = new Date().getFullYear();
     for (let y = now + 1; y >= now - 12; y--) ys.push(y);
@@ -24,11 +26,14 @@ export function StepAcademic({ data, set, errors }: StepAcademicProps) {
       <div className="wiz-step-head">
         <div className="eyebrow">Step 2 of 4</div>
         <h2>Your <span className="it">academic record.</span></h2>
-        <div className="help">Upload clear scans or photos of your marksheets. PDF, JPG or PNG · up to {fmtFileSize(MAX_FILE_BYTES)} each.</div>
+        <div className="help">
+          Upload clear scans or photos of your marksheets. PDF, JPG or PNG · up to {fmtFileSize(MAX_FILE_BYTES)} each.
+        </div>
       </div>
 
+      {/* 10th — required for everyone */}
       <div className="acad-card">
-        <h4>Class 10 <span className="grade-badge">Marksheet required</span></h4>
+        <h4>Class 10 <span className="grade-badge">Required</span></h4>
         <div className="fgrid">
           <Field label="Board" required error={errors.tenthBoard}>
             <select value={data.tenthBoard} onChange={e => set('tenthBoard', e.target.value)}>
@@ -60,33 +65,37 @@ export function StepAcademic({ data, set, errors }: StepAcademicProps) {
         </div>
       </div>
 
-      <div className="acad-card">
-        <h4>Class 11 <span className="grade-badge">If completed</span></h4>
-        <div className="fgrid">
-          <Field label="School name">
-            <input type="text" value={data.eleventhSchool} onChange={e => set('eleventhSchool', e.target.value)} />
-          </Field>
-          <Field label="Stream">
-            <select value={data.eleventhStream} onChange={e => set('eleventhStream', e.target.value)}>
-              <option value="">Select stream…</option>
-              <option>Science (PCM)</option>
-              <option>Science (PCB)</option>
-              <option>Science (PCMB)</option>
-              <option>Commerce</option>
-              <option>Humanities / Arts</option>
-              <option>Other</option>
-            </select>
-          </Field>
-          <div className="field full">
-            <label>11th marksheet (optional)</label>
-            <FileUpload value={data.eleventhFile} onChange={f => set('eleventhFile', f)}
-              label="Upload 11th marksheet" hint="Helpful if you've finished class 11" />
+      {/* Class 11 — UG only */}
+      {!isPG && (
+        <div className="acad-card">
+          <h4>Class 11 <span className="grade-badge">If completed</span></h4>
+          <div className="fgrid">
+            <Field label="School name">
+              <input type="text" value={data.eleventhSchool} onChange={e => set('eleventhSchool', e.target.value)} />
+            </Field>
+            <Field label="Stream">
+              <select value={data.eleventhStream} onChange={e => set('eleventhStream', e.target.value)}>
+                <option value="">Select stream…</option>
+                <option>Science (PCM)</option>
+                <option>Science (PCB)</option>
+                <option>Science (PCMB)</option>
+                <option>Commerce</option>
+                <option>Humanities / Arts</option>
+                <option>Other</option>
+              </select>
+            </Field>
+            <div className="field full">
+              <label>11th marksheet (optional)</label>
+              <FileUpload value={data.eleventhFile} onChange={f => set('eleventhFile', f)}
+                label="Upload 11th marksheet" hint="Helpful if you've finished class 11" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
+      {/* Class 12 — required for both UG and PG */}
       <div className="acad-card">
-        <h4>Class 12 <span className="grade-badge">If applicable</span></h4>
+        <h4>Class 12 <span className="grade-badge">Required</span></h4>
         <div className="fgrid">
           <Field label="Board">
             <select value={data.twelfthBoard} onChange={e => set('twelfthBoard', e.target.value)}>
@@ -107,12 +116,36 @@ export function StepAcademic({ data, set, errors }: StepAcademicProps) {
               onChange={e => set('twelfthPct', e.target.value)} />
           </Field>
           <div className="field">
-            <label>12th marksheet</label>
-            <FileUpload value={data.twelfthFile} onChange={f => set('twelfthFile', f)}
-              label="Upload 12th marksheet" hint="Required if you've completed class 12" />
+            <label>12th marksheet <span className="req">*</span></label>
+            <FileUpload
+              value={data.twelfthFile}
+              onChange={f => set('twelfthFile', f)}
+              label="Upload 12th marksheet"
+              hint={`PDF, JPG or PNG · max ${fmtFileSize(MAX_FILE_BYTES)}`}
+              error={errors.twelfthFile}
+            />
           </div>
         </div>
       </div>
+
+      {/* UG degree certificate — PG only */}
+      {isPG && (
+        <div className="acad-card">
+          <h4>UG degree <span className="grade-badge">Required for PG</span></h4>
+          <div className="fgrid">
+            <div className="field full">
+              <label>UG degree / provisional certificate <span className="req">*</span></label>
+              <FileUpload
+                value={data.ugFile}
+                onChange={f => set('ugFile', f)}
+                label="Upload UG degree certificate"
+                hint={`Degree or provisional certificate · PDF, JPG or PNG · max ${fmtFileSize(MAX_FILE_BYTES)}`}
+                error={errors.ugFile}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="acad-card" style={{ marginBottom: 0 }}>
         <h4>Entrance exams <span className="grade-badge">If attempted</span></h4>

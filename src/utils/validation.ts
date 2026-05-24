@@ -24,28 +24,33 @@ export function validateStep(step: number, data: FormData): Errors {
   const errors: Errors = {};
 
   if (step === 0) {
-    // Sales-team minimum: enough to call. Email and DOB are encouraged but
-    // optional so a half-finished form still gives the team someone to reach.
-    if (!data.fullName.trim())             errors.fullName = 'Required';
-    if (!data.phone.trim())                errors.phone = 'Required';
-    else if (!isValidPhone(data.phone))    errors.phone = 'Enter a valid phone number';
-    if (!data.city.trim())                 errors.city = 'Required';
-    if (!data.state.trim())                errors.state = 'Required';
-    // If they did fill email, make sure it's well-formed.
+    if (!data.studyLevel)                           errors.studyLevel = 'Please select UG or PG';
+    if (!data.fullName.trim())                      errors.fullName = 'Required';
+    if (!data.phone.trim())                         errors.phone = 'Required';
+    else if (!isValidPhone(data.phone))             errors.phone = 'Enter a valid phone number';
+    if (!data.city.trim())                          errors.city = 'Required';
+    if (!data.state.trim())                         errors.state = 'Required';
     if (data.email.trim() && !isValidEmail(data.email)) errors.email = 'Enter a valid email';
   }
 
   if (step === 1) {
-    if (!data.tenthBoard)                          errors.tenthBoard = 'Required';
-    if (!data.tenthYear)                           errors.tenthYear = 'Required';
-    if (!data.tenthPct)                            errors.tenthPct = 'Required';
-    else if (!isValidPercent(data.tenthPct))       errors.tenthPct = 'Enter a number between 0 and 100';
-    if (!data.tenthFile)                           errors.tenthFile = 'Upload your 10th marksheet';
+    // 10th is required for everyone
+    if (!data.tenthBoard)                           errors.tenthBoard = 'Required';
+    if (!data.tenthYear)                            errors.tenthYear = 'Required';
+    if (!data.tenthPct)                             errors.tenthPct = 'Required';
+    else if (!isValidPercent(data.tenthPct))        errors.tenthPct = 'Enter a number between 0 and 100';
+    if (!data.tenthFile)                            errors.tenthFile = 'Upload your 10th marksheet';
+
+    // 12th marksheet required for both UG and PG
+    if (!data.twelfthFile)                          errors.twelfthFile = 'Upload your 12th marksheet';
     if (data.twelfthPct && !isValidPercent(data.twelfthPct)) errors.twelfthPct = 'Enter a number between 0 and 100';
+
+    // PG-only: UG degree certificate required
+    if (data.studyLevel === 'PG' && !data.ugFile)  errors.ugFile = 'Upload your UG degree / provisional certificate';
   }
 
   if (step === 2) {
-    if (!data.preferredProgram)                                  errors.preferredProgram = 'Pick a program';
+    if (!data.preferredProgram)                     errors.preferredProgram = 'Pick a program';
     else if (data.preferredProgram === 'Other' && !data.otherProgram.trim()) {
       errors.otherProgram = 'Please describe the program you want';
     }

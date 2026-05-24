@@ -7,7 +7,11 @@ export interface FileMeta {
   path?: string; // Supabase Storage path, set after upload
 }
 
+export type StudyLevel = 'UG' | 'PG';
+
 export interface FormData {
+  studyLevel: StudyLevel | '';
+
   fullName: string;
   email: string;
   phone: string;
@@ -29,23 +33,27 @@ export interface FormData {
   twelfthPct: string;
   twelfthFile: File | null;
 
+  ugFile: File | null; // UG degree certificate — required for PG applicants
+
   jeeScore: string;
   neetScore: string;
   cetScore: string;
 
   preferredProgram: ProgramKey | '';
-  otherProgram: string;   // free-text, used when preferredProgram === 'Other'
+  otherProgram: string;
   preferredCity: City | '';
   preferredUniversity: string;
   goals: string;
 }
 
 export const BLANK_FORM: FormData = {
+  studyLevel: '',
   fullName: '', email: '', phone: '', dob: '',
   city: '', state: '',
   tenthBoard: '', tenthYear: '', tenthPct: '', tenthFile: null,
   eleventhSchool: '', eleventhStream: '', eleventhFile: null,
   twelfthBoard: '', twelfthYear: '', twelfthPct: '', twelfthFile: null,
+  ugFile: null,
   jeeScore: '', neetScore: '', cetScore: '',
   preferredProgram: '', otherProgram: '', preferredCity: '', preferredUniversity: '',
   goals: '',

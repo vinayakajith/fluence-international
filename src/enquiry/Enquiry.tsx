@@ -31,6 +31,7 @@ function toApplication(id: string, data: FormData, status: Status, submittedAt: 
     id,
     submittedAt,
     status,
+    studyLevel: data.studyLevel || 'UG',
     fullName: data.fullName,
     email: data.email,
     phone: data.phone,
@@ -48,6 +49,7 @@ function toApplication(id: string, data: FormData, status: Status, submittedAt: 
     twelfthYear: data.twelfthYear,
     twelfthPct: data.twelfthPct,
     twelfthFile: null,
+    ugFile: null,
     jeeScore: data.jeeScore,
     neetScore: data.neetScore,
     cetScore: data.cetScore,
@@ -158,6 +160,7 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
         tenthFile:    fileMetas.tenthFile,
         eleventhFile: fileMetas.eleventhFile,
         twelfthFile:  fileMetas.twelfthFile,
+        ugFile:       fileMetas.ugFile,
       });
 
       setSubmittedId(id);

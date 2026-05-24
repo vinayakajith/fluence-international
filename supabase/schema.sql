@@ -37,7 +37,10 @@ CREATE TABLE IF NOT EXISTS applications (
   other_program        text,
   preferred_city       text        DEFAULT '',
   preferred_university text        DEFAULT '',
-  goals                text        DEFAULT ''
+  goals                text        DEFAULT '',
+
+  study_level          text        DEFAULT 'UG',
+  ug_file              jsonb
 );
 
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;

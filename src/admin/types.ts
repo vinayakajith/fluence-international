@@ -5,6 +5,7 @@ export interface Application {
   id: string;
   submittedAt: string;
   status: Status;
+  studyLevel: string;
 
   fullName: string;
   email: string;
@@ -26,6 +27,8 @@ export interface Application {
   twelfthYear: string;
   twelfthPct: string;
   twelfthFile: FileMeta | null;
+
+  ugFile: FileMeta | null; // UG degree certificate — for PG applicants
 
   jeeScore: string;
   neetScore: string;

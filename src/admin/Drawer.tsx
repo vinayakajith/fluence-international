@@ -103,6 +103,9 @@ export function Drawer({ app, onClose, onUpdateStatus }: DrawerProps) {
               <div className="review-item"><span className="k">11th marksheet</span><FileBlock f={app.eleventhFile} /></div>
               <div className="review-item"><span className="k">Class 12</span><span className="v">{[app.twelfthBoard, app.twelfthYear, app.twelfthPct].filter(Boolean).join(' · ') || '—'}</span></div>
               <div className="review-item"><span className="k">12th marksheet</span><FileBlock f={app.twelfthFile} /></div>
+              {app.studyLevel === 'PG' && (
+                <div className="review-item"><span className="k">UG degree cert</span><FileBlock f={app.ugFile} /></div>
+              )}
               <div className="review-item" style={{ gridColumn: '1 / -1' }}>
                 <span className="k">Entrance exams</span>
                 <span className="v">{[

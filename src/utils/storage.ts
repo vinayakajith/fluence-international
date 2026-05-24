@@ -9,6 +9,7 @@ interface AppRow {
   id: string;
   submitted_at: string;
   status: string;
+  study_level: string;
   full_name: string;
   email: string;
   phone: string;
@@ -26,6 +27,7 @@ interface AppRow {
   twelfth_year: string;
   twelfth_pct: string;
   twelfth_file: FileMeta | null;
+  ug_file: FileMeta | null;
   jee_score: string;
   neet_score: string;
   cet_score: string;
@@ -41,6 +43,7 @@ function fromRow(r: AppRow): Application {
     id: r.id,
     submittedAt: r.submitted_at,
     status: r.status as Status,
+    studyLevel: r.study_level ?? 'UG',
     fullName: r.full_name,
     email: r.email,
     phone: r.phone,
@@ -58,6 +61,7 @@ function fromRow(r: AppRow): Application {
     twelfthYear: r.twelfth_year ?? '',
     twelfthPct: r.twelfth_pct ?? '',
     twelfthFile: r.twelfth_file ?? null,
+    ugFile: r.ug_file ?? null,
     jeeScore: r.jee_score ?? '',
     neetScore: r.neet_score ?? '',
     cetScore: r.cet_score ?? '',
@@ -74,6 +78,7 @@ function toRow(a: Application): AppRow {
     id: a.id,
     submitted_at: a.submittedAt,
     status: a.status,
+    study_level: a.studyLevel,
     full_name: a.fullName,
     email: a.email,
     phone: a.phone,
@@ -91,6 +96,7 @@ function toRow(a: Application): AppRow {
     twelfth_year: a.twelfthYear,
     twelfth_pct: a.twelfthPct,
     twelfth_file: a.twelfthFile,
+    ug_file: a.ugFile,
     jee_score: a.jeeScore,
     neet_score: a.neetScore,
     cet_score: a.cetScore,
@@ -144,6 +150,7 @@ export async function uploadDocuments(appId: string, data: FormData): Promise<{
   tenthFile: FileMeta | null;
   eleventhFile: FileMeta | null;
   twelfthFile: FileMeta | null;
+  ugFile: FileMeta | null;
 }> {
   async function upload(file: File | null, field: string): Promise<FileMeta | null> {
     if (!file) return null;
@@ -154,10 +161,11 @@ export async function uploadDocuments(appId: string, data: FormData): Promise<{
     return { name: file.name, size: file.size, type: file.type, path };
   }
 
-  const [tenthFile, eleventhFile, twelfthFile] = await Promise.all([
+  const [tenthFile, eleventhFile, twelfthFile, ugFile] = await Promise.all([
     upload(data.tenthFile, 'tenth'),
     upload(data.eleventhFile, 'eleventh'),
     upload(data.twelfthFile, 'twelfth'),
+    upload(data.ugFile, 'ug_degree'),
   ]);
-  return { tenthFile, eleventhFile, twelfthFile };
+  return { tenthFile, eleventhFile, twelfthFile, ugFile };
 }
