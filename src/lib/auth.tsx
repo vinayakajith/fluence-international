@@ -16,8 +16,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) {
+        // Existing session (returning anon user or admin already logged in)
+        setSession(data.session);
+      } else {
+        // No session — sign in anonymously so auth.uid() is always non-null.
+        // This applies to all public visitors; admin replaces it via signInWithPassword.
+        const { data: anonData } = await supabase.auth.signInAnonymously();
+        setSession(anonData.session);
+      }
       setLoading(false);
     });
 
