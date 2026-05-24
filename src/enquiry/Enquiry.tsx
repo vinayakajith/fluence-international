@@ -3,12 +3,11 @@ import { Nav } from '../components/Nav';
 import { Footer } from '../components/Footer';
 import { Icon } from '../icons';
 import { PARTNERS } from '../data';
-import type { ProgramKey } from '../data';
+import type { ProgramKey, Status } from '../data';
 import { BLANK_FORM, STEPS } from './types';
 import type { FormData } from './types';
 import { validateStep, type Errors } from '../utils/validation';
-import { upsertApplication, findApplication, uploadDocuments } from '../utils/storage';
-import type { Status } from '../data';
+import { upsertApplication, uploadDocuments } from '../utils/storage';
 import { StepPersonal } from './StepPersonal';
 import { StepAcademic } from './StepAcademic';
 import { StepProgram } from './StepProgram';
@@ -124,9 +123,7 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
         setRecordId(id);
         setRecordCreatedAt(createdAt);
       }
-      const existing = await findApplication(id);
-      const status: Status = existing?.status ?? 'Lead';
-      await upsertApplication(toApplication(id, data, status, createdAt!));
+      await upsertApplication(toApplication(id, data, 'Lead', createdAt!));
     } catch (err) {
       console.warn('Lead save failed', err);
     }
@@ -154,13 +151,10 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
       const createdAt = recordCreatedAt ?? new Date().toISOString();
       if (!recordId) { setRecordId(id); setRecordCreatedAt(createdAt); }
 
-      const existing = recordId ? await findApplication(recordId) : null;
-      const status: Status = existing?.status ?? 'Lead';
-
       // Upload documents to Supabase Storage, then save final application.
       const fileMetas = await uploadDocuments(id, data);
       await upsertApplication({
-        ...toApplication(id, data, status, createdAt),
+        ...toApplication(id, data, 'Lead', createdAt),
         tenthFile:    fileMetas.tenthFile,
         eleventhFile: fileMetas.eleventhFile,
         twelfthFile:  fileMetas.twelfthFile,
