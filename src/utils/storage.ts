@@ -133,7 +133,7 @@ export async function upsertApplication(record: Application): Promise<void> {
   const { error } = await supabase
     .from('applications')
     .upsert(toRow(record), { onConflict: 'id' });
-  if (error) throw error;
+  if (error) throw new Error(error.message ?? JSON.stringify(error));
 }
 
 export async function updateApplicationStatus(id: string, status: Status): Promise<void> {

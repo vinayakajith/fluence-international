@@ -177,8 +177,11 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
       setSubmittedId(id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
       console.error('Submission failed:', err);
+      const msg =
+        err instanceof Error ? err.message :
+        (err && typeof err === 'object' && 'message' in err) ? String((err as { message: unknown }).message) :
+        JSON.stringify(err);
       setSubmitError(msg);
       setSubmitting(false);
     }
