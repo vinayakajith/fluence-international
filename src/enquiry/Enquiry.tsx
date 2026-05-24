@@ -84,6 +84,7 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
   const [data, setData]           = useState<FormData>(initial);
   const [errors, setErrors]       = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [recordId, setRecordId]   = useState<string | null>(null);
   const [recordCreatedAt, setRecordCreatedAt] = useState<string | null>(null);
@@ -148,26 +149,37 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
       }
     }
     setSubmitting(true);
+    setSubmitError(null);
     try {
       const id        = recordId ?? newId();
       const createdAt = recordCreatedAt ?? new Date().toISOString();
       if (!recordId) { setRecordId(id); setRecordCreatedAt(createdAt); }
 
-      // Upload documents to Supabase Storage, then save final application.
-      const fileMetas = await uploadDocuments(id, data);
-      await upsertApplication({
-        ...toApplication(id, data, 'Lead', createdAt),
-        tenthFile:    fileMetas.tenthFile,
-        eleventhFile: fileMetas.eleventhFile,
-        twelfthFile:  fileMetas.twelfthFile,
-        ugFile:       fileMetas.ugFile,
-      });
+      // Save application record first (text data only).
+      await upsertApplication(toApplication(id, data, 'Lead', createdAt));
+
+      // Upload files — non-fatal: if storage isn't set up yet, skip silently.
+      let fileMetas = { tenthFile: null, eleventhFile: null, twelfthFile: null, ugFile: null } as Awaited<ReturnType<typeof uploadDocuments>>;
+      try {
+        fileMetas = await uploadDocuments(id, data);
+        // Update record with file paths now that uploads succeeded.
+        await upsertApplication({
+          ...toApplication(id, data, 'Lead', createdAt),
+          tenthFile:    fileMetas.tenthFile,
+          eleventhFile: fileMetas.eleventhFile,
+          twelfthFile:  fileMetas.twelfthFile,
+          ugFile:       fileMetas.ugFile,
+        });
+      } catch (uploadErr) {
+        console.warn('File upload failed, application saved without documents:', uploadErr);
+      }
 
       setSubmittedId(id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      console.error('Submission failed', err);
-      alert('Something went wrong while submitting. Please try again, or call us directly.');
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('Submission failed:', err);
+      setSubmitError(msg);
       setSubmitting(false);
     }
   };
@@ -268,6 +280,11 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
                 }
               </div>
             </div>
+            {submitError && (
+              <div className="submit-error">
+                <strong>Submission failed:</strong> {submitError}
+              </div>
+            )}
           </div>
 
         </div>

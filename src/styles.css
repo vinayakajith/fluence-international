@@ -2262,3 +2262,16 @@ input, select, textarea { font-family: inherit; }
 @media (max-width: 480px) {
   .level-toggle { grid-template-columns: 1fr; }
 }
+
+/* ---- Submit error box ---- */
+.submit-error {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  background: rgba(192,57,43,.07);
+  border: 1px solid rgba(192,57,43,.25);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  color: #c0392b;
+  line-height: 1.5;
+  word-break: break-word;
+}
