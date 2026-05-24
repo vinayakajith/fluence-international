@@ -45,29 +45,42 @@ CREATE TABLE IF NOT EXISTS applications (
 
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 
--- Grant table-level privileges (required in addition to RLS policies)
-GRANT INSERT, UPDATE            ON public.applications TO anon;
+-- Grant table-level privileges
+-- anon role: no direct access (form users sign in anonymously → become authenticated)
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.applications TO authenticated;
 
--- Public enquiry form: anonymous users can INSERT rows (user_id set to auth.uid() by default)
-CREATE POLICY "anon_insert"
+-- Form users (anonymous sign-in) have the `authenticated` role but NO email in their JWT.
+-- Admin has the `authenticated` role WITH an email.
+-- This distinction is the security boundary.
+
+-- Form users: INSERT only their own row
+CREATE POLICY "form_insert"
   ON applications FOR INSERT
-  TO anon
-  WITH CHECK (auth.uid() = user_id);
+  TO authenticated
+  WITH CHECK (
+    auth.uid() = user_id
+    AND (auth.jwt() ->> 'email') IS NULL
+  );
 
--- Public enquiry form: anonymous users can only UPDATE their own row
-CREATE POLICY "anon_update_own"
+-- Form users: UPDATE only their own row
+CREATE POLICY "form_update_own"
   ON applications FOR UPDATE
-  TO anon
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  TO authenticated
+  USING (
+    auth.uid() = user_id
+    AND (auth.jwt() ->> 'email') IS NULL
+  )
+  WITH CHECK (
+    auth.uid() = user_id
+    AND (auth.jwt() ->> 'email') IS NULL
+  );
 
--- Authenticated admin can do everything
+-- Admin: full access, scoped to the admin email
 CREATE POLICY "admin_all"
   ON applications FOR ALL
   TO authenticated
-  USING (true)
-  WITH CHECK (true);
+  USING  (auth.jwt() ->> 'email' = 'fluenceadmissions@gmail.com')
+  WITH CHECK (auth.jwt() ->> 'email' = 'fluenceadmissions@gmail.com');
 
 -- ============================================================
 -- Storage bucket policies
