@@ -46,13 +46,19 @@ CREATE TABLE IF NOT EXISTS applications (
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 
 -- Grant table-level privileges (required in addition to RLS policies)
-GRANT INSERT                    ON public.applications TO anon;
+GRANT INSERT, UPDATE            ON public.applications TO anon;
 GRANT SELECT, UPDATE, DELETE    ON public.applications TO authenticated;
 
--- Anyone (public enquiry form) can INSERT
+-- Anyone (public enquiry form) can INSERT and UPDATE their own application
 CREATE POLICY "public_insert"
   ON applications FOR INSERT
   TO anon
+  WITH CHECK (true);
+
+CREATE POLICY "public_update"
+  ON applications FOR UPDATE
+  TO anon
+  USING (true)
   WITH CHECK (true);
 
 -- Only signed-in admin can read / update / delete
