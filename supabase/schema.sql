@@ -47,35 +47,27 @@ ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 
 -- Grant table-level privileges (required in addition to RLS policies)
 GRANT INSERT, UPDATE            ON public.applications TO anon;
-GRANT SELECT, UPDATE, DELETE    ON public.applications TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.applications TO authenticated;
 
--- Anyone (public enquiry form) can INSERT and UPDATE their own application
-CREATE POLICY "public_insert"
+-- Public enquiry form: anonymous users can INSERT rows (user_id set to auth.uid() by default)
+CREATE POLICY "anon_insert"
   ON applications FOR INSERT
   TO anon
-  WITH CHECK (true);
+  WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "public_update"
+-- Public enquiry form: anonymous users can only UPDATE their own row
+CREATE POLICY "anon_update_own"
   ON applications FOR UPDATE
   TO anon
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Authenticated admin can do everything
+CREATE POLICY "admin_all"
+  ON applications FOR ALL
+  TO authenticated
   USING (true)
   WITH CHECK (true);
-
--- Only signed-in admin can read / update / delete
-CREATE POLICY "admin_select"
-  ON applications FOR SELECT
-  TO authenticated
-  USING (true);
-
-CREATE POLICY "admin_update"
-  ON applications FOR UPDATE
-  TO authenticated
-  USING (true);
-
-CREATE POLICY "admin_delete"
-  ON applications FOR DELETE
-  TO authenticated
-  USING (true);
 
 -- ============================================================
 -- Storage bucket policies

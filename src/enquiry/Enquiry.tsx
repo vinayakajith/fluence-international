@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { supabase } from '../lib/supabase';
 import { Nav } from '../components/Nav';
 import { Footer } from '../components/Footer';
 import { Icon } from '../icons';
@@ -82,6 +83,13 @@ export function Enquiry({ go, preselectUniversity, preselectProgram }: EnquiryPr
 
   const [step, setStep]           = useState(0);
   const [data, setData]           = useState<FormData>(initial);
+
+  // Establish an anonymous Supabase session so RLS can scope UPDATE to this user only.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) supabase.auth.signInAnonymously();
+    });
+  }, []);
   const [errors, setErrors]       = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
