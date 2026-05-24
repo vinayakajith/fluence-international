@@ -131,15 +131,15 @@ export function StepAcademic({ data, set, errors }: StepAcademicProps) {
       {/* UG degree certificate — PG only */}
       {isPG && (
         <div className="acad-card">
-          <h4>UG degree <span className="grade-badge">Required for PG</span></h4>
+          <h4>UG degree <span className="grade-badge">If available</span></h4>
           <div className="fgrid">
             <div className="field full">
-              <label>UG degree / provisional certificate <span className="req">*</span></label>
+              <label>UG degree / provisional certificate</label>
               <FileUpload
                 value={data.ugFile}
                 onChange={f => set('ugFile', f)}
                 label="Upload UG degree certificate"
-                hint={`Degree or provisional certificate · PDF, JPG or PNG · max ${fmtFileSize(MAX_FILE_BYTES)}`}
+                hint={`Optional · PDF, JPG or PNG · max ${fmtFileSize(MAX_FILE_BYTES)}`}
                 error={errors.ugFile}
               />
             </div>

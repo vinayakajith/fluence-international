@@ -45,8 +45,7 @@ export function validateStep(step: number, data: FormData): Errors {
     if (!data.twelfthFile)                          errors.twelfthFile = 'Upload your 12th marksheet';
     if (data.twelfthPct && !isValidPercent(data.twelfthPct)) errors.twelfthPct = 'Enter a number between 0 and 100';
 
-    // PG-only: UG degree certificate required
-    if (data.studyLevel === 'PG' && !data.ugFile)  errors.ugFile = 'Upload your UG degree / provisional certificate';
+    // PG-only: UG degree certificate — optional but shown
   }
 
   if (step === 2) {
